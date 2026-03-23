@@ -1,0 +1,143 @@
+This lab is about getting ready to setup a EKS Cluster on AWS. Before you begin, make sure you have a operational AWS Account with access to create IAM Users and access to all relevant services including
+
+IAM
+VPC
+EKS
+S3
+EC2
+
+** Installing Pre-requisite Tools
+
+Install eksctl
+Install kubectl
+Install aws CLI
+
+Install Helm
+To install helm version 3 on Linux or MacOS, you can follow following instructions.
+
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+You could further refer to Official HELM Install Instructions for alternative options.
+
+Verify the installtion is successful,
+
+helm --help
+helm version
+
+Configuring EKS Admin User
+When configuring the AWS CLI to create and manage an EKS cluster using eksctl, the IAM user (or role) whose credentials you are using needs to have sufficient permissions to perform all the necessary actions. This includes permissions to create and manage EKS clusters, EC2 instances, VPCs, IAM roles, and other related resources. Here’s a list of the permissions required:
+
+Required IAM Permissions
+Amazon EKS Full Access
+Amazon EC2 Full Access
+AWS CloudFormation Full Access
+IAM Permissions to Create Roles and Policies
+Amazon S3 Full Access (if you need to use S3 for storing logs or other purposes)
+Systems Manager (SSM) - Optional if you use Parameter Store
+AWS Key Management Service (KMS) - Optional if you encrypt Secrets using KMS
+Here’s a detailed policy document that grants the necessary permissions. You can create a custom IAM policy with these permissions and attach it to the IAM user or role.
+
+Refer to Installation documentation to understand the authorization required for the user which will run eksctl
+
+JSON Policy (use it in next step)
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "eks:*",
+                "ec2:*",
+                "cloudformation:*",
+                "iam:*",
+                "ecr:*",
+                "autoscaling:*",
+                "cloudwatch:*",
+                "elasticloadbalancing:*",
+                "s3:*",
+                "ssm:GetParameter",
+                "ssm:DescribeParameters",
+                "kms:ListAliases",
+                "kms:DescribeKey",
+                "kms:CreateGrant",
+                "kms:RetireGrant",
+                "kms:RevokeGrant",
+                "sts:AssumeRole"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+
+Steps to Attach the Policy
+1.Create a Custom Policy
+2.Go to the IAM console in AWS.
+3. Click on Policies in the left-hand menu.
+4. Click on Create policy.
+
+5.Select the JSON tab.
+6. Copy and paste the above JSON policy document.
+7. Click on Next button to Review policy.
+8. Name the policy (e.g., EKSFullAccessPolicy) and provide a description.
+9. Click on Create policy.
+
+10. Attach the Policy to a User:
+
+11. Go to Users in the IAM console.
+
+12. Create a new user eks-admin who will be creating the EKS cluster. Do not select Provide user access to the AWS Management Console. Select Next.
+13. Select Attach policies directly and search for EKSFullAccessPolicy as created above. Select Next. 
+14. Select the policy and click on Next: Review, then click on Create user.
+
+15. Create Access Keys for eks-admin User:
+
+16. Go to Users in the IAM console.
+
+17. Selecteks-admin user
+18. From Security credentials select Create access key 
+19. Select use case as Command Line Interface (CLI) , provide confirmation and select Next.
+20. Add a description value as something e.g. AWS CLI Utility and proceed to Create access key.
+21. Note the Access Key and Secret key which you will use in the next step to configure with AWS CLI.
+
+
+
+Configure AWS CLI with EKS Admin User
+Once you have created the user, proceed to create Security Credentials and generate the AWS Access Key + AWS Secret Key pair.
+
+Then make sure your AWS CLI is configured with the necessary permissions to create EKS clusters. You can configure it using:
+
+aws configure
+You'll need your AWS Access Key ID, Secret Access Key, region, and output format. The available output formats are:
+
+json: The default output format. Provides the output in JSON format.
+text: Provides the output in plain text format. This format is useful for simple parsing and readability.
+table: Provides the output in a readable table format. This format is useful for human readability but less suitable for parsing.
+yaml: Provides the output in YAML format. This is useful for configurations and other uses where YAML is preferred.
+yaml-stream: Provides the output in a streaming YAML format, where each document is separated by ---. This format is useful for continuous data processing.
+Select region as ap-southeast-1 to be consistent with the labs created as part of this course.
+
+[sample output]
+
+➜  ~ aws configure
+AWS Access Key ID [****************QSJX]: XXXX
+AWS Secret Access Key [****************P01d]: YYYY
+Default region name [ap-southeast-1]: ap-southeast-1
+Default output format [None]: table
+
+
+➜  ~ cat ~/.aws/config
+[default]
+region = ap-southeast-1
+output = table
+
+
+
+Create SSH key Pair
+To create a SSH key pair that you would use to log into the nodes created with EKS, * Switch to EC2 Service from AWS Console, and make sure you have selected the same region you are going to launch EKS cluster inside e.g. Singapore * Select Key Pairs from left side menu header Network & Security. * Create a key pair of type RSA and download a .pem or .ppk file based on how and from where you are going to connect.
+
+Move the downloaded private key to a safe location and change its permissions. e.g.
+mv ~/Downloads/eks-spore.pem ~/.ssh
+ls -al  ~/.ssh/eks-spore.pem
+chmod 600 ~/.ssh/eks-spore.pem
+ls -al  ~/.ssh/eks-spore.pem
+Now that the preparatory setup is done, you could proceed to create a EKS Cluster.

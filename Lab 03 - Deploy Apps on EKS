@@ -1,0 +1,79 @@
+In this project , you would write definitions for deploying the instavote application stack with all components/tiers which include,
+
+vote
+redis
+worker
+db
+result
+
+Project Specs
+Clone the code with git clone https://github.com/initcron/k8s-code.git and switch to k8s-code/projects/instavote/dev path.
+
+Apply the deployment and service code for the applications marked as ready
+Complete the code for deployments and services marked as TODO
+Apply the definitions that you have completed
+Validate the application workflow is operational by loading vote and result applications from the browser
+
+Following table depicts the state of readiness of the above services.
+
+App	    Deployment	    Service
+vote	TODO	        ready
+redis	ready	        ready
+worker	TODO	        n/a
+db	    ready	        ready
+result	TODO	        TODO
+
+Phase I - Apply existing code
+
+Create a namespace and switch to it
+
+kubectl create namespace instavote
+kubectl config set-context --current --namespace=instavote
+kubectl config get-contexts
+Apply the existing manifests
+
+cd k8s-code/projects/instavote/dev/
+
+kubectl apply  -f vote-svc.yaml
+kubectl apply -f redis-deploy.yaml -f redis-svc.yaml
+kubectl apply -f db-deploy.yaml -f db-svc.yaml
+validate
+
+kubectl get all
+
+
+Where you should see,
+
+deplyoment and services for redis and db created
+nodeport service for vote app
+⠀
+
+Phase II - Create Deployments and Services for Remaining Services
+You may find the files available in the same directory as above i.e. k8s-code/projects/instavote/dev/ with either partial or blank code. Your job is to complete the deployment and service yaml specs and apply those. While writing the specs, you could refer to the following specification.
+
+vote
+image: schoolofdevops/vote:v1
+application port: 80
+replicas: 2
+service type: NodePort
+nodePort : 30000
+
+
+worker
+image: schoolofdevops/worker:latest
+
+
+results
+image: schoolofdevops/vote-result
+application port: 80
+replicas: 1
+service type: NodePort
+nodePort : 30100
+
+To Validate:
+        kubectl get all
+
+The above command should show, five deployments and four services created services for vote and result app should have been exposed with NodePort
+
+![alt text](image-3.png)
+
