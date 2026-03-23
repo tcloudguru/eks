@@ -76,7 +76,6 @@ To Validate:
 The above command should show, five deployments and four services created services for vote and result app should have been exposed with NodePort
 
 ![alt text](image-3.png)
-![System Diagram](image-3.png)
-
+<img src="image-3.png" alt="System Diagram" width="400"/>
 
 
